@@ -1,0 +1,199 @@
+{% extends "organizer_app/base.html" %}
+{% load custom_filters %}
+
+{% block title %}Dashboard — Smart File Organizer{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Upload card -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-cloud-upload me-2"></i>Upload Files
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+          {% csrf_token %}
+
+          <div class="upload-zone mb-3" id="uploadZone">
+            <i class="bi bi-file-earmark-arrow-up fs-1 text-secondary"></i>
+            <p class="mt-2 mb-1 text-muted">Drag &amp; drop files here, or click to browse</p>
+            <small class="text-muted">Images, Videos, Documents, and more</small>
+            <!-- The actual input is hidden; the zone triggers it -->
+            {{ form.files }}
+          </div>
+
+          <!-- Selected file list preview -->
+          <ul class="list-group list-group-flush mb-3 small" id="filePreview"></ul>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-upload me-1"></i>Upload &amp; Organize
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Upload result summary (shown right after POST) -->
+    {% if uploaded_results %}
+    <div class="card mt-3">
+      <div class="card-header bg-success text-white">
+        <i class="bi bi-check2-circle me-2"></i>Upload Summary
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for r in uploaded_results %}
+          <li class="list-group-item d-flex justify-content-between align-items-center small">
+            <span>
+              <i class="bi bi-file-earmark me-1 text-secondary"></i>{{ r.name }}
+            </span>
+            {% if r.status == 'duplicate' %}
+              <span class="badge bg-warning text-dark">Duplicate — skipped</span>
+            {% else %}
+              <span class="badge bg-success">Saved → {{ r.category }}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Files list card -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-folder2 me-2"></i>Your Files</span>
+        <span class="badge bg-secondary">{{ user_files.count }} total</span>
+      </div>
+      <div class="card-body p-0">
+        {% if user_files %}
+          <!-- Category filter tabs -->
+          <ul class="nav nav-tabs px-3 pt-2" id="categoryTabs">
+            <li class="nav-item">
+              <a class="nav-link active" data-bs-toggle="tab" href="#tab-all">All</a>
+            </li>
+            {% for cat in "Images,Videos,Documents,Others"|split:"," %}
+            <li class="nav-item">
+              <a class="nav-link" data-bs-toggle="tab" href="#tab-{{ cat }}">{{ cat }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <div class="tab-content">
+            <!-- All files tab -->
+            <div class="tab-pane fade show active" id="tab-all">
+              <table class="table table-hover mb-0 small">
+                <thead class="table-light">
+                  <tr>
+                    <th>Name</th><th>Category</th><th>Size</th><th>Uploaded</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for f in user_files %}
+                  <tr class="file-row">
+                    <td>
+                      <a href="{{ media_url }}{{ f.file_path }}" target="_blank" class="text-decoration-none">
+                        <i class="bi bi-file-earmark me-1 text-secondary"></i>{{ f.original_name }}
+                      </a>
+                      {% if f.is_duplicate %}<span class="badge bg-warning text-dark ms-1">dup</span>{% endif %}
+                    </td>
+                    <td>
+                      {% if f.category == 'Images' %}<span class="badge bg-info text-dark">{{ f.category }}</span>
+                      {% elif f.category == 'Videos' %}<span class="badge bg-danger">{{ f.category }}</span>
+                      {% elif f.category == 'Documents' %}<span class="badge bg-success">{{ f.category }}</span>
+                      {% else %}<span class="badge bg-secondary">{{ f.category }}</span>{% endif %}
+                    </td>
+                    <td>{{ f.size|filesizeformat }}</td>
+                    <td>{{ f.uploaded_at|date:"d M Y H:i" }}</td>
+                    <td>
+                      <form method="post" action="{% url 'delete_file' f.id %}"
+                            onsubmit="return confirm('Delete {{ f.original_name }}?')">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger" title="Delete">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Per-category tabs -->
+            {% for cat in "Images,Videos,Documents,Others"|split:"," %}
+            <div class="tab-pane fade" id="tab-{{ cat }}">
+              <table class="table table-hover mb-0 small">
+                <thead class="table-light">
+                  <tr><th>Name</th><th>Size</th><th>Uploaded</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {% for f in user_files %}
+                    {% if f.category == cat %}
+                    <tr class="file-row">
+                      <td>
+                        <a href="{{ media_url }}{{ f.file_path }}" target="_blank" class="text-decoration-none">
+                          <i class="bi bi-file-earmark me-1 text-secondary"></i>{{ f.original_name }}
+                        </a>
+                      </td>
+                      <td>{{ f.size|filesizeformat }}</td>
+                      <td>{{ f.uploaded_at|date:"d M Y H:i" }}</td>
+                      <td>
+                        <form method="post" action="{% url 'delete_file' f.id %}"
+                              onsubmit="return confirm('Delete {{ f.original_name }}?')">
+                          {% csrf_token %}
+                          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endfor %}
+          </div>
+
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">No files yet. Upload something above.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Make the upload zone clickable
+  const zone  = document.getElementById('uploadZone');
+  const input = document.querySelector('input[type="file"]');
+  const preview = document.getElementById('filePreview');
+
+  zone.addEventListener('click', () => input.click());
+
+  input.addEventListener('change', () => {
+    preview.innerHTML = '';
+    [...input.files].forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item py-1';
+      li.textContent = `${f.name}  (${(f.size / 1024).toFixed(1)} KB)`;
+      preview.appendChild(li);
+    });
+  });
+
+  // Drag-and-drop support
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#0d6efd'; });
+  zone.addEventListener('dragleave', ()  => { zone.style.borderColor = '#6c757d'; });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.style.borderColor = '#6c757d';
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change'));
+  });
+</script>
+{% endblock %}
