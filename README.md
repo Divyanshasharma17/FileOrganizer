@@ -9,6 +9,7 @@ The application also detects and removes duplicate files using hashing, making f
     🏷️ Rename files to avoid overwriting
     📦 Store files in structured folders
     🌐 Simple and clean UI
+    
 🛠️ Tech Stack
   Backend: Django
   Frontend: HTML, CSS
@@ -17,6 +18,7 @@ Libraries Used:
   os (file handling)
   shutil (file operations)
   hashlib (duplicate detection)
+  
 📁 Project Structure
 file_organizer/
 │── organizer_app/
@@ -27,12 +29,14 @@ file_organizer/
 │
 │── media/        # Uploaded & organized files
 │── manage.py
+
 ⚙️ How It Works
   User uploads files through the web interface
   Files are saved in the media folder
   Each file is categorized based on its extension
   Duplicate files are detected using hashing and removed
   Files are moved into their respective folders
+  
 ▶️ Installation & Setup
     1. Clone the repository
     git clone https://github.com/your-username/smart-file-organizer.git
@@ -45,6 +49,7 @@ file_organizer/
     python manage.py runserver
     5. Open in browser
     http://127.0.0.1:8000/
+    
 📌 Output
     Files are automatically organized inside the media/ folder:
     media/
