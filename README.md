@@ -1,4 +1,5 @@
-📂 Smart File Organizer (Django Web App)
+📂 Smart File Organizer (Django Web App):-
+
 Smart File Organizer is a Django-based web application that allows users to upload multiple files and automatically organizes them into categories like Images, Documents, Videos, and Others.
 The application also detects and removes duplicate files using hashing, making file management efficient and clean.
 
@@ -20,6 +21,7 @@ Libraries Used:
   hashlib (duplicate detection)
   
 📁 Project Structure
+
 file_organizer/
 │── organizer_app/
 │   ├── views.py
@@ -31,6 +33,7 @@ file_organizer/
 │── manage.py
 
 ⚙️ How It Works
+
   User uploads files through the web interface
   Files are saved in the media folder
   Each file is categorized based on its extension
